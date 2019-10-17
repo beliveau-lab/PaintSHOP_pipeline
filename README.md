@@ -23,7 +23,7 @@ The pipeline is built to take a set of candidate oligonucleotide (oligo) fluores
 Here is a schematic overview of the pipeline:
 
 <div align="center">
-  <img src="images/HOP-schematic.png" width="200">
+  <img src="images/HOP-schematic.png">
 </div>
 
 
