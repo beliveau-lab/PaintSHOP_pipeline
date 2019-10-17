@@ -1,0 +1,4 @@
+fastq_directory: "example_files/"
+bowtie_index: "/Users/hershe/Documents/Assemblies/bowtie2_hg38_index/hg38"
+model_temp: 42
+jf_file: "/Users/hershe/Documents/Assemblies/hg38_18.jf"
