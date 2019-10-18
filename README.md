@@ -95,7 +95,7 @@ Another useful utility is the script used to generate the backend database files
 An example use is:
 
 ```
-python probeDB.py -p final_probes/ -a hg38_refseq.bed -o hg38_refseq_db.tsv
+$ python probeDB.py -p final_probes/ -a hg38_refseq.bed -o hg38_refseq_db.tsv
 ```
 # Questions
 
