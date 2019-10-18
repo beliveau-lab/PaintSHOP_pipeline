@@ -1,4 +1,9 @@
+# the path to a directory with your probe(s) folders in fastq format.
 fastq_directory: "example_files/"
-bowtie_index: "/Users/hershe/Documents/Assemblies/bowtie2_hg38_index/hg38"
+# the path to your Bowtie2 index for alignment
+bowtie_index: "/path/to/your/index"
+# the temperature at which you want to predict probe hybridization
+# current options are: 37, 42, 47, 52, 60 
 model_temp: 42
-jf_file: "/Users/hershe/Documents/Assemblies/hg38_18.jf"
+# path to your Jellyfish file
+jf_file: "/path/to/your/file"
