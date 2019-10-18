@@ -60,17 +60,17 @@ The information needed by the config file are the 4 following things:
 
 The pipeline will return a number of output folders. The most important are:
 
-| Folder | Description |
-|--------|-------------|
-| alignments/ | BAM files with Bowtie2 alignments |
-| predictions/ | data frames with the ML predictions used to generate final scores |
-| final_probes/ | the final probe set with all k-mer counts and scores |
+| Folder        | Description                                                       |
+|---------------|-------------------------------------------------------------------|
+| alignments/   | BAM files with Bowtie2 alignments                                 |
+| predictions/  | data frames with the ML predictions used to generate final scores |
+| final_probes/ | the final probe set with all k-mer counts and scores              |
 
 The columns of the files in the ```final_probes/``` folder are:
 
-| 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | 
-| chromosome | start | stop | sequence | Tm | on-target score (0-100) | off-target score (0-10,000) | repeat (0 or 1) | max k-mer | 
+| 0          | 1     | 2    | 3        | 4   | 5                       | 6                           | 7               | 8         |
+|------------|-------|------|----------|-----|------------------------ |-----------------------------|-----------------|-----------| 
+| chromosome | start | stop | sequence | Tm  | on-target score (0-100) | off-target score (0-10,000) | repeat (0 or 1) | max k-mer | 
 
 The repeat column is 0 if the sequence contains no repeat-masked bases, and 1 if it does. The max k-mer column is the max count out of all k-mers in the probe sequence.
 
