@@ -44,7 +44,7 @@ def getArgs(strInput=None):
                         required=True, help="The name of the annotation file")
     parser.add_argument('-o', '--outputFile', action='store', type=str,
                         required=False, help="The name for output file")
-    parser.add_argument('-f', '--file', action='store_true', type=bool,
+    parser.add_argument('-f', '--file', action='store_true', default=False,
                         required=False, help="Run in file mode")
     
     return parser.parse_args()
