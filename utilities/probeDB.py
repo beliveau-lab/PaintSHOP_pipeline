@@ -44,6 +44,8 @@ def getArgs(strInput=None):
                         required=True, help="The name of the annotation file")
     parser.add_argument('-o', '--outputFile', action='store', type=str,
                         required=False, help="The name for output file")
+    parser.add_argument('-f', '--file', action='store_true', type=bool,
+                        required=False, help="Run in file mode")
     
     return parser.parse_args()
 
@@ -63,17 +65,22 @@ def main():
     else:
         out_name = args.outputFile
     
-    
-    # create a list of all files in directory
-    files = glob.glob(folder + "/*")
-    
-    # creates a list of the all of the probes from each
-    # probe file, each represented as a single string
-    probes = []
-    for f in files:
-        with open(f) as probe_file:
+    if args.file:
+        probes = []
+        with open(args.folder) as probe_file:
             for line in probe_file:
                 probes.append(line.strip())
+    else:
+        # create a list of all files in directory
+        files = glob.glob(folder + "/*")
+        
+        # creates a list of the all of the probes from each
+        # probe file, each represented as a single string
+        probes = []
+        for f in files:
+            with open(f) as probe_file:
+                for line in probe_file:
+                    probes.append(line.strip())
     
     # creates a bedtool object with the entire probe set for the assembly
     probe_bedtool = pybedtools.BedTool(probes)
