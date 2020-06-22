@@ -8,6 +8,8 @@ Created on Mon Jun  3 16:11:26 2019
 A script to generate a database of refseq annotations with a row for each
 probe that overlaps the region.
 
+Changed on August 29, 2019 to include strand information for the probe.
+
 """
 
 import argparse
@@ -17,17 +19,18 @@ import pybedtools
 from Bio.Seq import Seq
 from Bio.Alphabet import IUPAC
 import pandas as pd
+import numpy as np
 
 def check_polarity(row):
     """"Checks polarity and flips probe sequence if reference is +."""
-    if row[14] == '+':
+    if row[15] == '+':
         return str(Seq(row[3], IUPAC.unambiguous_dna).reverse_complement())
     else:
         return str(row[3])
     
 def truncate_refseq(row):
     """"Truncates the Refseq column down to just accession."""
-    version = row[12].split('_')[0] + '_' + row[12].split('_')[1]
+    version = row[13].split('_')[0] + '_' + row[13].split('_')[1]
     accession = version.split('.')[0]
     return accession
 
@@ -44,8 +47,6 @@ def getArgs(strInput=None):
                         required=True, help="The name of the annotation file")
     parser.add_argument('-o', '--outputFile', action='store', type=str,
                         required=False, help="The name for output file")
-    parser.add_argument('-f', '--file', action='store_true', default=False,
-                        required=False, help="Run in file mode")
     
     return parser.parse_args()
 
@@ -65,22 +66,21 @@ def main():
     else:
         out_name = args.outputFile
     
-    if args.file:
-        probes = []
-        with open(args.folder) as probe_file:
+    
+    # create a list of all files in directory
+    files = glob.glob(folder + "/*")
+    
+    # creates a list of the all of the probes from each
+    # probe file, each represented as a single string
+    probes = []
+    for f in files:
+        with open(f) as probe_file:
             for line in probe_file:
                 probes.append(line.strip())
-    else:
-        # create a list of all files in directory
-        files = glob.glob(folder + "/*")
-        
-        # creates a list of the all of the probes from each
-        # probe file, each represented as a single string
-        probes = []
-        for f in files:
-            with open(f) as probe_file:
-                for line in probe_file:
-                    probes.append(line.strip())
+                
+    # add strand column to probes
+    for i in range(0, len(probes), 1):
+        probes[i] = probes[i] + '\t+'
     
     # creates a bedtool object with the entire probe set for the assembly
     probe_bedtool = pybedtools.BedTool(probes)
@@ -111,11 +111,14 @@ def main():
     # check polarity of annotations, function flips probe sequence if necessary
     probes[3] = probes.apply(check_polarity, axis = 1)
     
+    # flip probe strand too
+    probes[9] = np.where(probes[15] == '+', '-', '+')
+    
     # convert refseq column to just accession
-    probes[12] = probes.apply(truncate_refseq, axis = 1)
+    probes[13] = probes.apply(truncate_refseq, axis = 1)
     
     # drop unnecessary columns
-    probes.drop([9, 10, 11, 13, 14, 15], 
+    probes.drop([10, 11, 12, 14, 15, 16], 
                 axis = 1,
                 inplace = True)
     
