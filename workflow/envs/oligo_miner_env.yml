@@ -1,0 +1,9 @@
+name: oligo_miner_snakemake
+channels:
+  - bioconda
+  - conda-forge
+  - defaults
+dependencies:
+  - biopython=1.74
+  - pip=19.2.3
+  - python=2.7.16

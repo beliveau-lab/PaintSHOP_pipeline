@@ -1,0 +1,18 @@
+#
+# Configure PaintSHOP Pipeline
+#
+
+
+# input file paths
+assembly: 'Example1'
+genome_fasta: 'data/example.fa'
+annotation_file: 'data/example.gtf'
+
+
+# the temperature at which you want to predict probe hybridization
+# current options are: 37, 42, 47, 52, 60 
+model_temp: 42
+
+
+# number of threads for bowtie2 to use
+bowtie2_threads: 4
