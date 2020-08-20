@@ -24,7 +24,7 @@ This repository contains the code for the machine learning pipeline and the full
 2. Clone this repo, then create and activate the provided [environment](./environment.yml):
 
 ```
-$ git clone git@github.com:beliveau-lab/PaintSHOP_pipeline.git \
+$ git clone https://github.com/beliveau-lab/PaintSHOP_pipeline.git \
     && cd PaintSHOP_pipeline/ \
     && conda env create -f environment.yml \
     && conda activate paintshop_snakemake
