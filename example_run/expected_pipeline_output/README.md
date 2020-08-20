@@ -13,6 +13,8 @@ Pipeline outputs are organized into three directories:
 | [02_intermediate_files/](./02_intermediate_files)  | large intermediate files, useful when debugging, but otherwise disposable |
 | [03_output_files/](./03_output_files) | all DNA/RNA probe sets as both .tsv files and zip archives |
 
+All unwanted files can be safely deleted once the pipeline is run. 
+
 **NOTE:** To minimize disk usage, it may be desirable to keep only the three zip archives found in [03_output_files/04_zip_archives/](../example_run/expected_pipeline_output/03_output_files/04_zip_archives), as the intermediate files are very large (e.g. the pipeline will generate over 200 GB of intermediate files for hg38).
 
 ### Probes
