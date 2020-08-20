@@ -1,0 +1,432 @@
+
+# final pipeline endpoint
+rule all:
+    input:
+        'pipeline_output/DONE.txt'
+
+
+# discover all canonical/alternative chromosome records, save filtered fasta
+rule parse_genome:
+    input:
+        fasta=config['genome_fasta']
+    output:
+        chrom_names=f'pipeline_output/01_reference_files/01_chrom_names/chrom_names.txt',
+        removed_unk=f'pipeline_output/01_reference_files/01_chrom_names/removed_unk.txt',
+        removed_rand=f'pipeline_output/01_reference_files/01_chrom_names/removed_rand.txt',
+        removed_alt=f'pipeline_output/01_reference_files/01_chrom_names/removed_alt.txt',
+        removed_hap=f'pipeline_output/01_reference_files/01_chrom_names/removed_hap.txt',
+        removed_fix=f'pipeline_output/01_reference_files/01_chrom_names/removed_fix.txt',
+        multi_fasta=f'pipeline_output/01_reference_files/02_multi_fasta/{config["assembly"]}.fa'
+    conda:		
+        'envs/environment.yml'
+    params:
+        mfree='30G',
+        h_rt='3:0:0'
+    script:
+        'scripts/parse_genome.py'
+
+
+# parse out individual chromosome fastas for each canonical chromosome
+checkpoint split_chroms:
+    input:
+        fasta=rules.parse_genome.output.multi_fasta,
+        chrom_names=rules.parse_genome.output.chrom_names,        
+    output:
+        chrom_fasta_dir=directory('pipeline_output/01_reference_files/03_chrom_fastas'),
+    conda:
+        'envs/environment.yml'
+    params:
+        mfree='30G',
+        h_rt='3:0:0'
+    script:
+        'scripts/split_chroms.py'
+
+
+# filter gtf records to exons on canonical chromosomes and split into chromosome files
+checkpoint parse_gtf:
+    input:
+        gtf=config['annotation_file'],
+        chrom_names=rules.parse_genome.output.chrom_names
+    output:
+        bed=f'pipeline_output/01_reference_files/05_annotation_files/{config["assembly"]}.bed',
+        chrom_df_dir=directory('pipeline_output/02_intermediate_files/01_chrom_gtf_dataframes'),
+    conda:      
+        'envs/environment.yml'
+    params:
+        mfree='30G',
+        h_rt='3:0:0'
+    script:
+        'scripts/parse_gtf.py'
+
+
+# collapse annotations to segments shared across isoforms for each gene
+rule flatten_isoforms:
+    input:
+        df='pipeline_output/02_intermediate_files/01_chrom_gtf_dataframes/{chrom_gtf}_filtered_gtf.dat',
+        upstream=rules.parse_gtf.output
+    output:
+        bed='pipeline_output/01_reference_files/04_chrom_iso_flat_beds/{chrom_gtf}_iso_flat.bed',
+    conda:      
+        'envs/environment.yml'
+    params:
+        mfree='80G',
+        h_rt='3:0:0'
+    script:
+        'scripts/iso_flatten.py'
+
+
+# aggregate paths to dynamically created files
+def get_flat_beds(wildcards):
+
+    # construct wild card path to checkpoint output files
+    wildcard_path = os.path.join(
+        checkpoints.parse_gtf.get(**wildcards).output.chrom_df_dir, 
+        '{chrom_gtf}_filtered_gtf.dat'
+    )
+
+    # construct paths to downstream files to be aggregated
+    file_paths = expand(
+        rules.flatten_isoforms.output.bed,
+        chrom_gtf=glob_wildcards(wildcard_path).chrom_gtf
+    )
+
+    # success
+    return(file_paths)
+
+
+# merge the individually-flattened chromosome annotation files
+rule merge_flat_annotations:
+    input:
+        get_flat_beds
+    output:
+        bed=f'pipeline_output/01_reference_files/05_annotation_files/{config["assembly"]}_iso_flat.bed',
+    conda:
+        'envs/environment.yml'
+    params:
+        mfree='20G',
+        h_rt='2:0:0',
+    shell:
+        'for file in {input}; do cat $file >> {output.bed}; done'
+
+
+# build a bowtie2 index from the filtered multi-fasta genome
+BOWTIE2_DIR = f'pipeline_output/01_reference_files/06_bowtie2_indices/{config["assembly"]}'
+rule build_bowtie:
+    input:
+        rules.parse_genome.output.multi_fasta
+    output:
+        f'{BOWTIE2_DIR}/{config["assembly"]}.1.bt2',
+        f'{BOWTIE2_DIR}/{config["assembly"]}.2.bt2',
+        f'{BOWTIE2_DIR}/{config["assembly"]}.3.bt2',
+        f'{BOWTIE2_DIR}/{config["assembly"]}.4.bt2',
+        f'{BOWTIE2_DIR}/{config["assembly"]}.rev.1.bt2',
+        f'{BOWTIE2_DIR}/{config["assembly"]}.rev.2.bt2',
+    conda:
+        'envs/environment.yml'
+    params:
+        mfree='80G',
+        h_rt='3:0:0'
+    threads: config['bowtie2_threads']
+    shell:
+        f'bowtie2-build --threads {{threads}} {{input}} {BOWTIE2_DIR}/{config["assembly"]}'
+
+
+# build a jellyfish index file from the filtered multi-fasta genome
+rule build_jellyfish:
+    input:
+        rules.parse_genome.output.multi_fasta
+    output:
+        f"pipeline_output/01_reference_files/07_jf_files/{config['assembly']}.jf"
+    conda:
+        'envs/environment.yml'
+    params:
+        mfree='30G',
+        h_rt='3:0:0'
+    shell:
+        'jellyfish count -m 18 -s 3300M -o {output} --out-counter-len 1 -L 2 {input}'
+
+
+# mine candidate probes from each chromosome fasta
+rule design_probes:
+    input:
+        'pipeline_output/01_reference_files/03_chrom_fastas/{chrom}.fa',
+        rules.parse_genome.output
+    output:
+        'pipeline_output/02_intermediate_files/02_init_probes/{chrom}.fastq',
+    conda:
+        'envs/oligo_miner_env.yml'
+    params:
+        mfree='30G',
+        h_rt='72:0:0',
+        basename='pipeline_output/02_intermediate_files/02_init_probes/{chrom}',
+    shell:
+        'python {workflow.basedir}/scripts/blockParse_unmasked.py -l 30 -L 37 -f {input[0]} -o {params.basename}'
+
+
+# align probes to reference genome
+rule align_probes:
+    input:
+        rules.design_probes.output,
+        rules.build_bowtie.output
+    output:
+        'pipeline_output/02_intermediate_files/03_alignments/{chrom}.bam'
+    conda:
+        'envs/environment.yml'
+    params:
+        mfree='40G',
+        h_rt='5:0:0'
+    threads: config['bowtie2_threads']
+    shell:
+        f'bowtie2 -x {BOWTIE2_DIR}/{config["assembly"]} -U {{input[0]}} --threads {{threads}} --very-sensitive-local -k 100 | '
+        'samtools view -bS - > {output}'
+
+
+# extract duplex information from alignment results
+rule sam_to_pairwise:
+    input:
+        rules.align_probes.output
+    output:
+        'pipeline_output/02_intermediate_files/04_pairwise_alignments/{chrom}_pairwise.out'
+    conda:
+        'envs/environment.yml'
+    params:
+        mfree='20G',
+        h_rt='3:0:0'
+    shell:
+        'samtools view {input} | sam2pairwise > {output}'
+
+
+# extract alignment scores from pairwise alignment
+rule extract_alignment_scores:
+    input:
+        rules.align_probes.output
+    output:
+        'pipeline_output/02_intermediate_files/05_alignment_scores/{chrom}_AS.txt'
+    conda:
+        'envs/environment.yml'
+    params:
+        mfree='10G',
+        h_rt='1:0:0'
+    shell:
+        "samtools view {input} | awk '{{print $12}}' > {output}"
+
+
+# construct alignment dataframe using pairwise alignment info
+rule parse_pairwise:
+    input:
+        rules.sam_to_pairwise.output,
+        rules.extract_alignment_scores.output
+    output:
+        'pipeline_output/02_intermediate_files/06_data_frames/{chrom}_alignments.csv'
+    conda:
+        'envs/environment.yml'
+    params:
+        mfree='85G',
+        h_rt='3:0:0'
+    script:
+        'scripts/parse_pairwise.py'
+
+
+# predict duplexing probabilities using pre-trained XGBoost model
+rule predict_duplex:
+    input:
+        rules.parse_pairwise.output,
+        f'{workflow.basedir}/pickled_models/{config["model_temp"]}_all_fixed_xgb.pickle.dat'
+    output:
+        'pipeline_output/02_intermediate_files/07_predictions/{chrom}_predictions.csv'
+    conda:
+        'envs/environment.yml'
+    params:
+        mfree='30G',
+        h_rt='3:0:0'
+    script:
+        'scripts/XGB_predict.py'
+
+
+# score probes based on XGBoost output
+rule score:
+    input:
+        rules.predict_duplex.output
+    output:
+        'pipeline_output/02_intermediate_files/08_scored_probes/{chrom}_probes.bed'
+    conda:
+        'envs/environment.yml'
+    params:
+        mfree='20G',
+        h_rt='2:0:0'
+    script:
+        'scripts/output_bed.py'
+
+
+# remove any probes that contain "N" (sometimes introduced via bowtie2/sam2pairwise)
+rule filter_n_probes:
+    input:
+        rules.score.output
+    output:
+        'pipeline_output/02_intermediate_files/09_probes_filtered/{chrom}_probes.bed'    
+    conda:
+        'envs/environment.yml'
+    params:
+        mfree='20G',
+        h_rt='2:0:0'
+    shell:
+        "awk '$4 !~ /N/' {input} > {output}"
+
+
+# determine max kmer frequency using jellyfish
+rule max_kmer:
+    input:
+        rules.filter_n_probes.output,
+        rules.build_jellyfish.output
+    output:
+        'pipeline_output/02_intermediate_files/10_max_kmer_counts/{chrom}_kmer_max.txt'
+    conda:
+        'envs/environment.yml'
+    params:
+        mfree='20G',
+        h_rt='2:0:0'
+    script:
+        'scripts/kmer_frequency.py'
+
+
+# output final probe set
+rule final_probes:
+    input:
+        rules.filter_n_probes.output,
+        rules.max_kmer.output
+    output:
+        f'pipeline_output/03_output_files/01_dna_probes/{config["assembly"]}_all_newBalance_{{chrom}}.tsv'
+    conda:
+        'envs/environment.yml'
+    params:
+        mfree='20G',
+        h_rt='2:0:0'
+    script:
+        'scripts/append_max_kmers.py'
+
+
+# aggregate paths to dynamically created files
+def get_probe_paths(wildcards):
+
+    # construct wild card path to checkpoint output files
+    wildcard_path = os.path.join(
+        checkpoints.split_chroms.get(**wildcards).output[0], 
+        '{chrom}.fa'
+    )
+
+    # construct paths to downstream files to be aggregated
+    file_paths = expand(
+        rules.final_probes.output[0],
+        chrom=glob_wildcards(wildcard_path).chrom
+    )
+
+    # success
+    return(file_paths)
+
+
+# merge probes for each chromosome
+rule merge_probes:
+    input:
+        get_probe_paths
+    output:
+        f'pipeline_output/03_output_files/01_dna_probes/{config["assembly"]}_all_newBalance.tsv',
+    conda:
+        'envs/environment.yml'
+    params:
+        mfree='20G',
+        h_rt='2:0:0',
+    shell:
+        'for file in {input}; do cat $file >> {output}; done'
+
+
+# zip probe files for each chromosome for PaintSHOP resources upload
+rule zip_probes:
+    input:
+        rules.merge_probes.output
+    output:
+        f'pipeline_output/03_output_files/04_zip_archives/{config["assembly"]}_all_newBalance.zip'
+    conda:
+        'envs/environment.yml'
+    params:
+        mfree='20G',
+        h_rt='2:0:0',
+    shell:
+        'zip -r -j {output} {input}'
+
+
+# generate probe database using bedtools intersect
+rule gen_refseq_db:
+    input:
+        probes=get_probe_paths,
+        annotations=rules.parse_gtf.output.bed
+    output:
+        tsv=f'pipeline_output/03_output_files/02_rna_probes_all/{config["assembly"]}_refseq_newBalance.tsv'
+    conda:
+        'envs/environment.yml'
+    params:
+        mfree='20G',
+        h_rt='2:0:0',
+    script:
+        'scripts/probeDB.py'
+
+
+# zip probe files for each chromosome for PaintSHOP resources upload
+rule zip_refseq_db:
+    input:
+        rules.gen_refseq_db.output.tsv
+    output:
+        f'pipeline_output/03_output_files/04_zip_archives/{config["assembly"]}_refseq_newBalance.zip'
+    conda:
+        'envs/environment.yml'
+    params:
+        mfree='20G',
+        h_rt='2:0:0',
+    shell:
+        'zip -r -j {output} {input}'
+
+
+# generate probe database using bedtools intersect
+rule gen_iso_db:
+    input:
+        probes=get_probe_paths,
+        annotations=rules.merge_flat_annotations.output.bed
+
+    output:
+        tsv=f'pipeline_output/03_output_files/03_rna_probes_iso/{config["assembly"]}_iso_newBalance.tsv'
+    conda:
+        'envs/environment.yml'
+    params:
+        mfree='20G',
+        h_rt='2:0:0',
+    script:
+        'scripts/probeDB.py'
+
+
+# zip probe files for each chromosome for PaintSHOP resources upload
+rule zip_iso_db:
+    input:
+        rules.gen_iso_db.output.tsv
+    output:
+        f'pipeline_output/03_output_files/04_zip_archives/{config["assembly"]}_iso_newBalance.zip'
+    conda:
+        'envs/environment.yml'
+    params:
+        mfree='20G',
+        h_rt='2:0:0',
+    shell:
+        'zip -r -j {output} {input}'
+
+
+# success
+rule finish:
+    input:
+        rules.zip_probes.output,
+        rules.zip_refseq_db.output,
+        rules.zip_iso_db.output,
+    output:
+        'pipeline_output/DONE.txt'
+    params:
+        mfree='10G',
+        h_rt='1:0:0'
+    shell:
+        'touch {output}'
