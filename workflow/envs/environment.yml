@@ -1,6 +1,6 @@
 name: snakemake_paintshop
 channels:
-  - kapabix
+  - beliveau-lab
   - bioconda
   - conda-forge
   - defaults
