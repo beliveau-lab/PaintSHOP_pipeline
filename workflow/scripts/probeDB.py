@@ -77,6 +77,7 @@ def main():
 
     # reverse complement probe sequences as needed based on reference strand
     df['probe_seq'] = df.apply(check_polarity, axis=1)
+    df['probe_strand'] = df.apply(get_strand, axis=1)
 
     # drop unnecessary columns
     drop_cols = [
@@ -109,6 +110,14 @@ def check_polarity(row):
         return str(Seq(row['probe_seq'], IUPAC.unambiguous_dna).reverse_complement())
     else:
         return str(row['probe_seq'])
+
+
+def get_strand(row):
+    """"Checks polarity and returns strand as '+' or '-'."""
+    if row['ref_strand'] == '+':
+        return '-'
+    else:
+        return '+'
 
 
 if __name__ == "__main__":
