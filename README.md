@@ -15,7 +15,7 @@
 
 2. An interactive Shiny web application for probe design
 
-This repository contains the code for the machine learning pipeline and the full software stack needed to design probes for additional genomes not already hosted on the web application.
+This repository contains the Snakemake workflow for the machine learning pipeline and the full software stack needed to design probes for additional genomes not already hosted on the web application.
 
 ## Installation
 
