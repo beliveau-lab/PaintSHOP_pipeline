@@ -25,7 +25,8 @@ probes.columns = ['chrom',
                   'Tm',
                   'on_target_score',
                   'off_target_score',
-                  'repeat']
+                  'repeat',
+                  'prob']
 
 # read in max kmer counts ('max_kmer_counts/hg38_chrM_DNA-FISH_kmer_max.txt')
 with open(snakemake.input[1]) as file:
