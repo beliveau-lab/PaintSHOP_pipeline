@@ -10,6 +10,7 @@ dependencies:
   - bowtie2=2.3.5.1
   - jellyfish=2.2.10
   - numpy=1.18.5
+  - nupack=4.0.0.23
   - pandas=1.0.5
   - pip=20.1.1
   - pybedtools=0.8.1
