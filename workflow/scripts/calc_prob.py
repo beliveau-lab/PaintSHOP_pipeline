@@ -34,9 +34,6 @@ def prob(seq):
     # invoke nupack's 'prob' command using input seq and a linear structure
     probability = nupack.structure_probability(strands=[seq], structure='.' * len(seq), model=NUPACK_MODEL)
     
-    # round prob value
-    probability = np.round(probability, 3)
-
     # success
     return(probability)
 

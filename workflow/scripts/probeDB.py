@@ -96,7 +96,8 @@ def main():
                   sep = '\t',
                   index = False,
                   index_label = False,
-                  header = False)
+                  header = False,
+                  float_format='%.3f')
 
     # remove temp file
     os.remove(intersect_result)

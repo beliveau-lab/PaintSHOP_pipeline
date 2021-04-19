@@ -41,4 +41,4 @@ df['strand'] = '+'
 df = df.sort_values('start')
 
 # save to disk
-df.to_csv(snakemake.output[0], sep='\t', index=False, header=False)
+df.to_csv(snakemake.output[0], sep='\t', index=False, header=False, float_format='%.3f')
