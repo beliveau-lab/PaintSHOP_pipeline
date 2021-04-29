@@ -3,8 +3,14 @@ import numpy as np
 import pandas as pd
 import nupack
 
-# configure nupack
-NUPACK_MODEL = nupack.Model(material='dna', celsius=74.5, sodium=0.39)
+# configure nupack model
+NUPACK_MODEL = nupack.Model(
+    material=snakemake.config['nupack_material'],
+    ensemble=snakemake.config['nupack_ensemble'],
+    celsius=snakemake.config['nupack_celsius'],
+    sodium=snakemake.config['nupack_sodium'],
+    magnesium=snakemake.config['nupack_magnesium'],
+)
 
 def main():
 
