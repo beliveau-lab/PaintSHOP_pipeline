@@ -13,7 +13,7 @@ annotation_file: 'data/example.gtf'
 # RNA probe sets. If the `existing_probes` option is left commented out in this file, de
 # novo probes will be generated. If the `existing_probes` option is uncommented here, the
 # path to a BED file with DNA probes with columns [chrom, start, stop, seq] must be provided.
-# existing_probes: 'test_probes.bed'
+# existing_probes: 'data/test_probes.bed'
 
 # number of threads for bowtie2 to use
 bowtie2_threads: 4
