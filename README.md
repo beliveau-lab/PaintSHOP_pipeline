@@ -4,8 +4,8 @@
 
 # PaintSHOP Pipeline
 
-[![Snakemake](https://img.shields.io/badge/snakemake-≥5.20.1-brightgreen.svg?style=flat)](https://snakemake.readthedocs.io)
-[![DOI](https://zenodo.org/badge/DOI/10.1101/2020.07.05.188797.svg)](https://doi.org/10.1101/2020.07.05.188797)
+[![Snakemake](./docs/img/snakemake.svg)](https://snakemake.readthedocs.io)
+[![DOI](./docs/img/preprint.svg)](https://doi.org/10.1101/2020.07.05.188797)
 
 ## Overview
 

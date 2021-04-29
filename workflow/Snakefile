@@ -288,11 +288,24 @@ rule max_kmer:
     script:
         'scripts/kmer_frequency.py'
 
+# calculate prob value using nupack
+rule calc_prob:
+    input:
+        rules.filter_n_probes.output,
+    output:
+        'pipeline_output/02_intermediate_files/11_prob_values/{chrom}_prob.txt'
+    conda:
+        'envs/environment.yml'
+    params:
+        mfree='20G',
+        h_rt='2:0:0'
+    script:
+        'scripts/calc_prob.py'
 
 # output final probe set
 rule final_probes:
     input:
-        rules.filter_n_probes.output,
+        rules.calc_prob.output,
         rules.max_kmer.output
     output:
         f'pipeline_output/03_output_files/01_dna_probes/{config["assembly"]}_all_newBalance_{{chrom}}.tsv'
