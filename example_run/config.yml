@@ -2,21 +2,25 @@
 # Configure PaintSHOP Pipeline
 #
 
-
 # input file paths
 assembly: 'Example1'
 genome_fasta: 'data/example.fa'
 annotation_file: 'data/example.gtf'
 
-
-# the temperature at which you want to predict probe hybridization
-# current options are: 37, 42, 47, 52, 60 
-model_temp: 42
-
+# OPTIONAL: it is possible to provide already designed DNA-FISH probes to the pipeline
+# and then run downstream steps, including thermodynamic, specifity, and secondary
+# structure analysis, as well as intersection with the genome annotations file to yield
+# RNA probe sets. If the `existing_probes` option is left commented out in this file, de
+# novo probes will be generated. If the `existing_probes` option is uncommented here, the
+# path to a BED file with DNA probes with columns [chrom, start, stop, seq] must be provided.
+# existing_probes: 'test_probes.bed'
 
 # number of threads for bowtie2 to use
 bowtie2_threads: 4
 
+# the temperature at which you want to predict probe hybridization with XGBoost
+# current options are: 37, 42, 47, 52, 60
+model_temp: 42
 
 # NUPACK 4 model specification https://piercelab-caltech.github.io/nupack-docs/model/#model-specification
 nupack_material: 'dna'

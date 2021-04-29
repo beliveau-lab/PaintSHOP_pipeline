@@ -162,11 +162,25 @@ rule design_probes:
     shell:
         'python {workflow.basedir}/scripts/blockParse_unmasked.py -l 30 -L 37 -f {input[0]} -o {params.basename}'
 
+# optional: if the user provided probes, skip probe mining and format those as fastq files
+rule format_existing_probes:
+    input:
+        'pipeline_output/01_reference_files/03_chrom_fastas/{chrom}.fa',
+        rules.parse_genome.output
+    output:
+        'pipeline_output/02_intermediate_files/02_init_probes/{chrom}.fastq',
+    conda:
+        'envs/environment.yml'
+    params:
+        mfree='30G',
+        h_rt='72:0:0',
+    script:
+        'scripts/format_existing_probes.py'
 
 # align probes to reference genome
 rule align_probes:
     input:
-        rules.design_probes.output,
+        rules.format_existing_probes.output if 'existing_probes' in config else rules.design_probes.output,
         rules.build_bowtie.output
     output:
         'pipeline_output/02_intermediate_files/03_alignments/{chrom}.bam'
