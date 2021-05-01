@@ -127,7 +127,7 @@ rule build_bowtie:
     params:
         mfree='80G',
         h_rt='3:0:0'
-    threads: config['bowtie2_threads']
+    threads: config.get('bowtie2_threads', 4)
     shell:
         f'bowtie2-build --threads {{threads}} {{input}} {BOWTIE2_DIR}/{config["assembly"]}'
 
@@ -190,7 +190,7 @@ rule align_probes:
     params:
         mfree='40G',
         h_rt='5:0:0'
-    threads: config['bowtie2_threads']
+    threads: config.get('bowtie2_threads', 4)
     shell:
         f'bowtie2 -x {BOWTIE2_DIR}/{config["assembly"]} -U {{input[0]}} --threads {{threads}} --very-sensitive-local -k 100 | '
         'samtools view -bS - > {output}'
@@ -246,7 +246,7 @@ rule parse_pairwise:
 rule predict_duplex:
     input:
         rules.parse_pairwise.output,
-        f'{workflow.basedir}/pickled_models/{config["model_temp"]}_all_fixed_xgb.pickle.dat'
+        f'{workflow.basedir}/pickled_models/{config.get("model_temp", 42)}_all_fixed_xgb.pickle.dat'
     output:
         'pipeline_output/02_intermediate_files/07_predictions/{chrom}_predictions.csv'
     conda:

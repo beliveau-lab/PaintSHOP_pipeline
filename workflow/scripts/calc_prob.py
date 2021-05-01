@@ -5,11 +5,11 @@ import nupack
 
 # configure nupack model
 NUPACK_MODEL = nupack.Model(
-    material=snakemake.config['nupack_material'],
-    ensemble=snakemake.config['nupack_ensemble'],
-    celsius=snakemake.config['nupack_celsius'],
-    sodium=snakemake.config['nupack_sodium'],
-    magnesium=snakemake.config['nupack_magnesium'],
+    material=snakemake.config.get('nupack_material', 'dna'),
+    ensemble=snakemake.config.get('nupack_ensemble', 'stacking'),
+    celsius=snakemake.config.get('nupack_celsius', 74.5),
+    sodium=snakemake.config.get('nupack_sodium', 0.39),
+    magnesium=snakemake.config.get('nupack_magnesium', 0.0),
 )
 
 def main():

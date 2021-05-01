@@ -1,11 +1,37 @@
 #
-# Configure PaintSHOP Pipeline
+# PaintSHOP Pipeline Run Configuration -- pipeline version v1.2
 #
+
+########################################################################
+#
+#  REQUIRED PARAMETERS
+#
+########################################################################
 
 # input file paths
 assembly: 'Example1'
 genome_fasta: 'data/example.fa'
 annotation_file: 'data/example.gtf'
+
+########################################################################
+#
+#  OPTIONAL PARAMETERS (uncomment parameters to override defaults)
+#
+########################################################################
+
+# number of threads for bowtie2 to use
+# bowtie2_threads: 4
+
+# the temperature at which you want to predict probe hybridization with XGBoost
+# current options are: 37, 42, 47, 52, 60
+# model_temp: 42
+
+# NUPACK 4 model specification https://piercelab-caltech.github.io/nupack-docs/model/#model-specification
+# nupack_material: 'dna'
+# nupack_ensemble: 'stacking'
+# nupack_celsius: 74.5
+# nupack_sodium: 0.39
+# nupack_magnesium: 0.0
 
 # OPTIONAL: it is possible to provide already designed DNA-FISH probes to the pipeline
 # and then run downstream steps, including thermodynamic, specifity, and secondary
@@ -15,23 +41,9 @@ annotation_file: 'data/example.gtf'
 # path to a BED file with DNA probes with columns [chrom, start, stop, seq] must be provided.
 # existing_probes: 'data/test_probes.bed'
 
-# number of threads for bowtie2 to use
-bowtie2_threads: 4
-
-# the temperature at which you want to predict probe hybridization with XGBoost
-# current options are: 37, 42, 47, 52, 60
-model_temp: 42
-
-# NUPACK 4 model specification https://piercelab-caltech.github.io/nupack-docs/model/#model-specification
-nupack_material: 'dna'
-nupack_ensemble: 'stacking'
-nupack_celsius: 74.5
-nupack_sodium: 0.39
-nupack_magnesium: 0.0
-
 # OPTIONAL: it is possible to skip particular chromosomes during probe design. Chromosomes
 # specified here will be excluded from probe design but still included in the bowtie2 index
 # for the accuracy of alignment and off-target predictions of all probes. NOTE: the values
 # specified here must match the fasta sequence header values (e.g. 'chr1' ) exactly
-exclude_chroms:
-  - chrM
+# exclude_chroms:
+#   - chrM
