@@ -100,7 +100,7 @@ def main():
         outfile.write('\n'.join(removed_rand))
     with open(REMOVED_EXCL, 'w') as outfile:
         print(f'found {len(removed_excl)} user-excluded chromosomes')
-        outfile.write('\n'.join(removed_rand))
+        outfile.write('\n'.join(removed_excl))
     with open(REMOVED_ALT, 'w') as outfile:
         print(f'found {len(removed_alt)} _alt chromosomes')
         outfile.write('\n'.join(removed_alt))
