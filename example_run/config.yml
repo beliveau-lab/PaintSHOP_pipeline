@@ -28,3 +28,10 @@ nupack_ensemble: 'stacking'
 nupack_celsius: 74.5
 nupack_sodium: 0.39
 nupack_magnesium: 0.0
+
+# OPTIONAL: it is possible to skip particular chromosomes during probe design. Chromosomes
+# specified here will be excluded from probe design but still included in the bowtie2 index
+# for the accuracy of alignment and off-target predictions of all probes. NOTE: the values
+# specified here must match the fasta sequence header values (e.g. 'chr1' ) exactly
+exclude_chroms:
+  - chrM

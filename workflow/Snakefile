@@ -12,6 +12,7 @@ rule parse_genome:
     output:
         chrom_names=f'pipeline_output/01_reference_files/01_chrom_names/chrom_names.txt',
         removed_unk=f'pipeline_output/01_reference_files/01_chrom_names/removed_unk.txt',
+        removed_excl=f'pipeline_output/01_reference_files/01_chrom_names/removed_excl.txt',
         removed_rand=f'pipeline_output/01_reference_files/01_chrom_names/removed_rand.txt',
         removed_alt=f'pipeline_output/01_reference_files/01_chrom_names/removed_alt.txt',
         removed_hap=f'pipeline_output/01_reference_files/01_chrom_names/removed_hap.txt',

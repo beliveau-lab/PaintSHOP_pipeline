@@ -8,10 +8,16 @@ CHROM_NAMES = snakemake.output.chrom_names
 
 # chromosome records to be filtered out
 REMOVED_UNK = snakemake.output.removed_unk
+REMOVED_EXCL = snakemake.output.removed_excl
 REMOVED_RAND = snakemake.output.removed_rand
 REMOVED_ALT = snakemake.output.removed_alt
 REMOVED_HAP = snakemake.output.removed_hap
 REMOVED_FIX = snakemake.output.removed_fix
+
+# optionally manually filter out chromosome records
+EXCL_CHROMS = []
+if 'exclude_chroms' in snakemake.config:
+    EXCL_CHROMS = snakemake.config['exclude_chroms']
 
 def main():
 
@@ -21,6 +27,7 @@ def main():
 
     # store names of excluded chromosomes
     removed_unk = []
+    removed_excl = []
     removed_rand = []
     removed_alt = []
     removed_hap = []
@@ -41,6 +48,11 @@ def main():
         # no associated chromosome, include in bowtie2 index
         if 'Un_' in seq.id:
             removed_unk.append(seq.id)  # keep a record of this chromosome
+            filtered.append(seq)        # add to multifasta for bowtie2 index
+
+        # user-excluded chrom, include in bowtie2 index but skip probe design
+        elif seq.id in EXCL_CHROMS:
+            removed_excl.append(seq.id) # keep a record of this chromosome
             filtered.append(seq)        # add to multifasta for bowtie2 index
 
         # un-placed on chromosome, include in bowtie2 index
@@ -85,6 +97,9 @@ def main():
         outfile.write('\n'.join(removed_unk))
     with open(REMOVED_RAND, 'w') as outfile:
         print(f'found {len(removed_rand)} _random chromosomes')
+        outfile.write('\n'.join(removed_rand))
+    with open(REMOVED_EXCL, 'w') as outfile:
+        print(f'found {len(removed_excl)} user-excluded chromosomes')
         outfile.write('\n'.join(removed_rand))
     with open(REMOVED_ALT, 'w') as outfile:
         print(f'found {len(removed_alt)} _alt chromosomes')
