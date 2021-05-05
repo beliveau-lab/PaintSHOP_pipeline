@@ -70,7 +70,7 @@ rule flatten_isoforms:
     conda:      
         'envs/environment.yml'
     params:
-        mfree='80G',
+        mfree='16G',
         h_rt='3:0:0'
     script:
         'scripts/iso_flatten.py'
@@ -105,7 +105,7 @@ rule merge_flat_annotations:
         'envs/environment.yml'
     params:
         mfree='20G',
-        h_rt='2:0:0',
+        h_rt='3:0:0'
     shell:
         'for file in {input}; do cat $file >> {output.bed}; done'
 
@@ -157,7 +157,7 @@ rule design_probes:
     conda:
         'envs/oligo_miner_env.yml'
     params:
-        mfree='30G',
+        mfree='12G',
         h_rt='72:0:0',
         basename='pipeline_output/02_intermediate_files/02_init_probes/{chrom}',
     shell:
@@ -173,7 +173,7 @@ rule format_existing_probes:
     conda:
         'envs/environment.yml'
     params:
-        mfree='30G',
+        mfree='12G',
         h_rt='72:0:0',
     script:
         'scripts/format_existing_probes.py'
@@ -188,7 +188,7 @@ rule align_probes:
     conda:
         'envs/environment.yml'
     params:
-        mfree='40G',
+        mfree='20G',
         h_rt='5:0:0'
     threads: config.get('bowtie2_threads', 4)
     shell:
@@ -205,7 +205,7 @@ rule sam_to_pairwise:
     conda:
         'envs/environment.yml'
     params:
-        mfree='20G',
+        mfree='12G',
         h_rt='3:0:0'
     shell:
         'samtools view {input} | sam2pairwise > {output}'
@@ -220,8 +220,8 @@ rule extract_alignment_scores:
     conda:
         'envs/environment.yml'
     params:
-        mfree='10G',
-        h_rt='1:0:0'
+        mfree='12G',
+        h_rt='3:0:0'
     shell:
         "samtools view {input} | awk '{{print $12}}' > {output}"
 
@@ -268,7 +268,7 @@ rule score:
         'envs/environment.yml'
     params:
         mfree='20G',
-        h_rt='2:0:0'
+        h_rt='3:0:0'
     script:
         'scripts/output_bed.py'
 
@@ -282,8 +282,8 @@ rule filter_n_probes:
     conda:
         'envs/environment.yml'
     params:
-        mfree='20G',
-        h_rt='2:0:0'
+        mfree='12G',
+        h_rt='3:0:0'
     shell:
         "awk '$4 !~ /N/' {input} > {output}"
 
@@ -299,7 +299,7 @@ rule max_kmer:
         'envs/environment.yml'
     params:
         mfree='20G',
-        h_rt='2:0:0'
+        h_rt='3:0:0'
     script:
         'scripts/kmer_frequency.py'
 
@@ -312,8 +312,8 @@ rule calc_prob:
     conda:
         'envs/environment.yml'
     params:
-        mfree='20G',
-        h_rt='2:0:0'
+        mfree='12G',
+        h_rt='6:0:0'
     script:
         'scripts/calc_prob.py'
 
@@ -327,8 +327,8 @@ rule final_probes:
     conda:
         'envs/environment.yml'
     params:
-        mfree='20G',
-        h_rt='2:0:0'
+        mfree='12G',
+        h_rt='3:0:0'
     script:
         'scripts/append_max_kmers.py'
 
@@ -362,7 +362,7 @@ rule merge_probes:
         'envs/environment.yml'
     params:
         mfree='20G',
-        h_rt='2:0:0',
+        h_rt='3:0:0'
     shell:
         'for file in {input}; do cat $file >> {output}; done'
 
@@ -376,8 +376,8 @@ rule zip_probes:
     conda:
         'envs/environment.yml'
     params:
-        mfree='20G',
-        h_rt='2:0:0',
+        mfree='10G',
+        h_rt='3:0:0'
     shell:
         'zip -r -j {output} {input}'
 
@@ -393,7 +393,7 @@ rule gen_refseq_db:
         'envs/environment.yml'
     params:
         mfree='20G',
-        h_rt='2:0:0',
+        h_rt='3:0:0'
     script:
         'scripts/probeDB.py'
 
@@ -407,8 +407,8 @@ rule zip_refseq_db:
     conda:
         'envs/environment.yml'
     params:
-        mfree='20G',
-        h_rt='2:0:0',
+        mfree='10G',
+        h_rt='3:0:0'
     shell:
         'zip -r -j {output} {input}'
 
@@ -425,7 +425,7 @@ rule gen_iso_db:
         'envs/environment.yml'
     params:
         mfree='20G',
-        h_rt='2:0:0',
+        h_rt='3:0:0'
     script:
         'scripts/probeDB.py'
 
@@ -439,8 +439,8 @@ rule zip_iso_db:
     conda:
         'envs/environment.yml'
     params:
-        mfree='20G',
-        h_rt='2:0:0',
+        mfree='10G',
+        h_rt='3:0:0'
     shell:
         'zip -r -j {output} {input}'
 
@@ -455,6 +455,6 @@ rule finish:
         'pipeline_output/DONE.txt'
     params:
         mfree='10G',
-        h_rt='1:0:0'
+        h_rt='3:0:0'
     shell:
         'touch {output}'
