@@ -12,6 +12,7 @@ rule parse_genome:
     output:
         chrom_names=f'pipeline_output/01_reference_files/01_chrom_names/chrom_names.txt',
         removed_unk=f'pipeline_output/01_reference_files/01_chrom_names/removed_unk.txt',
+        removed_excl=f'pipeline_output/01_reference_files/01_chrom_names/removed_excl.txt',
         removed_rand=f'pipeline_output/01_reference_files/01_chrom_names/removed_rand.txt',
         removed_alt=f'pipeline_output/01_reference_files/01_chrom_names/removed_alt.txt',
         removed_hap=f'pipeline_output/01_reference_files/01_chrom_names/removed_hap.txt',
@@ -69,7 +70,7 @@ rule flatten_isoforms:
     conda:      
         'envs/environment.yml'
     params:
-        mfree='80G',
+        mfree='16G',
         h_rt='3:0:0'
     script:
         'scripts/iso_flatten.py'
@@ -104,7 +105,7 @@ rule merge_flat_annotations:
         'envs/environment.yml'
     params:
         mfree='20G',
-        h_rt='2:0:0',
+        h_rt='3:0:0'
     shell:
         'for file in {input}; do cat $file >> {output.bed}; done'
 
@@ -126,7 +127,7 @@ rule build_bowtie:
     params:
         mfree='80G',
         h_rt='3:0:0'
-    threads: config['bowtie2_threads']
+    threads: config.get('bowtie2_threads', 4)
     shell:
         f'bowtie2-build --threads {{threads}} {{input}} {BOWTIE2_DIR}/{config["assembly"]}'
 
@@ -156,26 +157,40 @@ rule design_probes:
     conda:
         'envs/oligo_miner_env.yml'
     params:
-        mfree='30G',
+        mfree='12G',
         h_rt='72:0:0',
         basename='pipeline_output/02_intermediate_files/02_init_probes/{chrom}',
     shell:
         'python {workflow.basedir}/scripts/blockParse_unmasked.py -l 30 -L 37 -f {input[0]} -o {params.basename}'
 
+# optional: if the user provided probes, skip probe mining and format those as fastq files
+rule format_existing_probes:
+    input:
+        'pipeline_output/01_reference_files/03_chrom_fastas/{chrom}.fa',
+        rules.parse_genome.output
+    output:
+        'pipeline_output/02_intermediate_files/02_init_probes/{chrom}.fastq',
+    conda:
+        'envs/environment.yml'
+    params:
+        mfree='12G',
+        h_rt='72:0:0',
+    script:
+        'scripts/format_existing_probes.py'
 
 # align probes to reference genome
 rule align_probes:
     input:
-        rules.design_probes.output,
+        rules.format_existing_probes.output if 'existing_probes' in config else rules.design_probes.output,
         rules.build_bowtie.output
     output:
         'pipeline_output/02_intermediate_files/03_alignments/{chrom}.bam'
     conda:
         'envs/environment.yml'
     params:
-        mfree='40G',
+        mfree='20G',
         h_rt='5:0:0'
-    threads: config['bowtie2_threads']
+    threads: config.get('bowtie2_threads', 4)
     shell:
         f'bowtie2 -x {BOWTIE2_DIR}/{config["assembly"]} -U {{input[0]}} --threads {{threads}} --very-sensitive-local -k 100 | '
         'samtools view -bS - > {output}'
@@ -190,7 +205,7 @@ rule sam_to_pairwise:
     conda:
         'envs/environment.yml'
     params:
-        mfree='20G',
+        mfree='12G',
         h_rt='3:0:0'
     shell:
         'samtools view {input} | sam2pairwise > {output}'
@@ -205,8 +220,8 @@ rule extract_alignment_scores:
     conda:
         'envs/environment.yml'
     params:
-        mfree='10G',
-        h_rt='1:0:0'
+        mfree='12G',
+        h_rt='3:0:0'
     shell:
         "samtools view {input} | awk '{{print $12}}' > {output}"
 
@@ -231,7 +246,7 @@ rule parse_pairwise:
 rule predict_duplex:
     input:
         rules.parse_pairwise.output,
-        f'{workflow.basedir}/pickled_models/{config["model_temp"]}_all_fixed_xgb.pickle.dat'
+        f'{workflow.basedir}/pickled_models/{config.get("model_temp", 42)}_all_fixed_xgb.pickle.dat'
     output:
         'pipeline_output/02_intermediate_files/07_predictions/{chrom}_predictions.csv'
     conda:
@@ -253,7 +268,7 @@ rule score:
         'envs/environment.yml'
     params:
         mfree='20G',
-        h_rt='2:0:0'
+        h_rt='3:0:0'
     script:
         'scripts/output_bed.py'
 
@@ -267,8 +282,8 @@ rule filter_n_probes:
     conda:
         'envs/environment.yml'
     params:
-        mfree='20G',
-        h_rt='2:0:0'
+        mfree='12G',
+        h_rt='3:0:0'
     shell:
         "awk '$4 !~ /N/' {input} > {output}"
 
@@ -284,7 +299,7 @@ rule max_kmer:
         'envs/environment.yml'
     params:
         mfree='20G',
-        h_rt='2:0:0'
+        h_rt='3:0:0'
     script:
         'scripts/kmer_frequency.py'
 
@@ -297,8 +312,8 @@ rule calc_prob:
     conda:
         'envs/environment.yml'
     params:
-        mfree='20G',
-        h_rt='2:0:0'
+        mfree='12G',
+        h_rt='6:0:0'
     script:
         'scripts/calc_prob.py'
 
@@ -312,8 +327,8 @@ rule final_probes:
     conda:
         'envs/environment.yml'
     params:
-        mfree='20G',
-        h_rt='2:0:0'
+        mfree='12G',
+        h_rt='3:0:0'
     script:
         'scripts/append_max_kmers.py'
 
@@ -347,7 +362,7 @@ rule merge_probes:
         'envs/environment.yml'
     params:
         mfree='20G',
-        h_rt='2:0:0',
+        h_rt='3:0:0'
     shell:
         'for file in {input}; do cat $file >> {output}; done'
 
@@ -361,8 +376,8 @@ rule zip_probes:
     conda:
         'envs/environment.yml'
     params:
-        mfree='20G',
-        h_rt='2:0:0',
+        mfree='10G',
+        h_rt='3:0:0'
     shell:
         'zip -r -j {output} {input}'
 
@@ -378,7 +393,7 @@ rule gen_refseq_db:
         'envs/environment.yml'
     params:
         mfree='20G',
-        h_rt='2:0:0',
+        h_rt='3:0:0'
     script:
         'scripts/probeDB.py'
 
@@ -392,8 +407,8 @@ rule zip_refseq_db:
     conda:
         'envs/environment.yml'
     params:
-        mfree='20G',
-        h_rt='2:0:0',
+        mfree='10G',
+        h_rt='3:0:0'
     shell:
         'zip -r -j {output} {input}'
 
@@ -410,7 +425,7 @@ rule gen_iso_db:
         'envs/environment.yml'
     params:
         mfree='20G',
-        h_rt='2:0:0',
+        h_rt='3:0:0'
     script:
         'scripts/probeDB.py'
 
@@ -424,8 +439,8 @@ rule zip_iso_db:
     conda:
         'envs/environment.yml'
     params:
-        mfree='20G',
-        h_rt='2:0:0',
+        mfree='10G',
+        h_rt='3:0:0'
     shell:
         'zip -r -j {output} {input}'
 
@@ -440,6 +455,6 @@ rule finish:
         'pipeline_output/DONE.txt'
     params:
         mfree='10G',
-        h_rt='1:0:0'
+        h_rt='3:0:0'
     shell:
         'touch {output}'
