@@ -16,13 +16,21 @@ For example, to run this pipeline on the hg38 assembly, the [hg38.fa.gz](http://
 
 ### Config file
 
-The [config.yml](../example_run/config.yml) file contains 5 parameters:
+The [config.yml](../example_run/config.yml) file sets all the pipeline parameters for a particular run. A new config file should be created to accompany each pipeline run.
+
+**Required parameters:**
 
 * `assembly` is the name of the genome assembly e.g. `hg38`
 * `genome_fasta` is the path to the genome sequence file e.g. `hg38.fa`
 * `annotation_file` is the path to the annotation file e.g. `hg38.refGene.gtf`
-* `model_temp` is the temperature at which probe hybridization is predicted (e.g. `37`, `42`, `47`, `52`, or `60`)
+
+**Optional parameters:**
+
 * `bowtie2_threads` is the number of threads for bowtie2 to use during index building and alignment e.g. `4`
+* `model_temp` is the temperature at which probe hybridization is predicted with XGBoost (e.g. `37`, `42`, `47`, `52`, or `60`)
+* `nupack_<param>` settings configure the [NUPACK 4 model](https://piercelab-caltech.github.io/nupack-docs/model/#model-specification) used for secondary structure predictions
+* `existing_probes` allows users to provide already designed DNA-FISH probes to the pipeline and then run downstream steps, including thermodynamic, specifity, and secondary structure analysis, as well as intersection with the genome annotations file to yield RNA probe sets.
+* `exclude_chroms` allows users to manually exclude particular fasta records from probe design. This is useful in cases where no probes are available for a particular fasta record.
 
 ### Genome annotation files
 

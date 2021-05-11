@@ -21,13 +21,19 @@ This repository contains the Snakemake workflow for the machine learning pipelin
 
 1. Make sure you have [conda](https://docs.conda.io/en/latest/miniconda.html) installed. 
 
-2. Clone this repo, then create and activate the provided [environment](./environment.yml):
+2. Install Mamba to facilitate snakemake installation, as recommended in the [Snakemake docs](https://snakemake.readthedocs.io/en/stable/getting_started/installation.html#installation-via-conda-mamba).
+
+```
+$ conda install -c conda-forge mamba
+```
+
+3. Clone this repo, then create and activate the provided [environment](./environment.yml):
 
 ```
 $ git clone https://github.com/beliveau-lab/PaintSHOP_pipeline.git \
     && cd PaintSHOP_pipeline/ \
-    && conda env create -f environment.yml \
-    && conda activate paintshop_snakemake
+    && mamba env create -f environment.yml \
+    && mamba activate paintshop_snakemake
 ```
 
 ## Running the pipeline
