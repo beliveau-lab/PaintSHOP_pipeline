@@ -33,7 +33,7 @@ $ conda install -c conda-forge mamba
 $ git clone https://github.com/beliveau-lab/PaintSHOP_pipeline.git \
     && cd PaintSHOP_pipeline/ \
     && mamba env create -f environment.yml \
-    && mamba activate paintshop_snakemake
+    && conda activate paintshop_snakemake
 ```
 
 ## Running the pipeline
