@@ -24,7 +24,7 @@ This repository contains the Snakemake workflow for the machine learning pipelin
 2. Install Mamba to facilitate snakemake installation, as recommended in the [Snakemake docs](https://snakemake.readthedocs.io/en/stable/getting_started/installation.html#installation-via-conda-mamba).
 
 ```
-$ conda install -c conda-forge mamba
+$ conda install -n base -c conda-forge mamba
 ```
 
 3. Clone this repo, then create and activate the provided [environment](./environment.yml):
