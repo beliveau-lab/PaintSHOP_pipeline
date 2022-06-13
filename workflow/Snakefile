@@ -160,8 +160,10 @@ rule design_probes:
         mfree='12G',
         h_rt='72:0:0',
         basename='pipeline_output/02_intermediate_files/02_init_probes/{chrom}',
+        min_length=config.get('blockparse_min_length', 30),
+        max_length=config.get('blockparse_max_length', 37),
     shell:
-        'python {workflow.basedir}/scripts/blockParse_unmasked.py -l 30 -L 37 -f {input[0]} -o {params.basename}'
+        'python {workflow.basedir}/scripts/blockParse_unmasked.py -l {params.min_length} -L {params.max_length} -f {input[0]} -o {params.basename}'
 
 # optional: if the user provided probes, skip probe mining and format those as fastq files
 rule format_existing_probes:

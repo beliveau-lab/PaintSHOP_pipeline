@@ -19,6 +19,10 @@ annotation_file: 'data/example.gtf'
 #
 ########################################################################
 
+# blockparse params (initial probe candidate mining)
+# blockparse_min_length: 80
+# blockparse_max_length: 80
+
 # number of threads for bowtie2 to use
 # bowtie2_threads: 4
 
