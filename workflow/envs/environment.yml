@@ -33,7 +33,6 @@ dependencies:
   - libzlib=1.2.11
   - ncurses=6.1
   - numpy=1.18.5
-  - nupack=4.0.0.23
   - openssl=1.1.1l
   - pandas=1.0.5
   - perl=5.32.1
