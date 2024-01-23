@@ -41,9 +41,8 @@ The columns in DNA probe files are:
 | 5 | on-target score (0-100) | hybridization prediction at the target site of the probe |
 | 6 | off-target score (0-10,000) | sum of the hybridization predictions for all off-target sites (up to 100) for the probe |
 | 7 | repeat (0 or 1) | 0 if the sequence contains no repeat-masked bases, and 1 if it does  |
-| 8 | prob | the probability that the probe has no secondary structure |
-| 9 | max k-mer | max count out of all k-mers in the probe sequence |
-| 10 | strand | probe strand, `+` or `-` |
+| 10 | max k-mer | max count out of all k-mers in the probe sequence |
+| 11 | strand | probe strand, `+` or `-` |
 
 #### Isoform-resolved RNA probe sets
 
@@ -59,12 +58,11 @@ The columns in isoform-resolved RNA probe sets are:
 | 5 | on-target score (0-100) | hybridization prediction at the target site of the probe |
 | 6 | off-target score (0-10,000) | sum of the hybridization predictions for all off-target sites (up to 100) for the probe |
 | 7 | repeat (0 or 1) | 0 if the sequence contains no repeat-masked bases, and 1 if it does  |
-| 8 | prob | the probability that the probe has no secondary structure |
-| 9 | max k-mer | max count out of all k-mers in the probe sequence |
-| 10 | strand | probe strand, `+` or `-` |
-| 11 | refseq | The transcript ID that the probe targets, stripped of any version suffixes e.g. NM_001180043 |
-| 12 | transcript_id | The unmodified transcript ID of the transcript that the probe targets e.g. NM_001180043.1 |
-| 13 | gene_id | The gene ID of the gene whose transcript the probe targets e.g. PAU8 |
+| 8 | max k-mer | max count out of all k-mers in the probe sequence |
+| 9 | strand | probe strand, `+` or `-` |
+| 10 | refseq | The transcript ID that the probe targets, stripped of any version suffixes e.g. NM_001180043 |
+| 11 | transcript_id | The unmodified transcript ID of the transcript that the probe targets e.g. NM_001180043.1 |
+| 12 | gene_id | The gene ID of the gene whose transcript the probe targets e.g. PAU8 |
 
 #### Isoform-flattened RNA probe sets
 
@@ -80,11 +78,10 @@ The columns in isoform-flattened RNA probe sets are:
 | 5 | on-target score (0-100) | hybridization prediction at the target site of the probe |
 | 6 | off-target score (0-10,000) | sum of the hybridization predictions for all off-target sites (up to 100) for the probe |
 | 7 | repeat (0 or 1) | 0 if the sequence contains no repeat-masked bases, and 1 if it does  |
-| 8 | prob | the probability that the probe has no secondary structure |
-| 9 | max k-mer | max count out of all k-mers in the probe sequence |
-| 10 | strand | probe strand, `+` or `-` |
-| 11 | gene_id | The gene ID of the gene whose transcript the probe targets e.g. PAU8 |
-| 12 | transcripts |  The number of isoforms that this probe targets |
+| 8 | max k-mer | max count out of all k-mers in the probe sequence |
+| 9 | strand | probe strand, `+` or `-` |
+| 10 | gene_id | The gene ID of the gene whose transcript the probe targets e.g. PAU8 |
+| 11 | transcripts |  The number of isoforms that this probe targets |
 
 ### Reporting
 
