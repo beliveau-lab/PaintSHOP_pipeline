@@ -65,14 +65,13 @@ def main():
         6: 'probe_off_target',
         7: 'probe_repeat',
         8: 'probe_max_kmer',
-        9: 'probe_prob',
-        10: 'probe_strand',
-        11: 'ref_chrom',
-        12: 'ref_start',
-        13: 'ref_stop',
-        14: 'ref_refseq',
-        15: 'ref_score',
-        16: 'ref_strand',
+        9: 'probe_strand',
+        10: 'ref_chrom',
+        11: 'ref_start',
+        12: 'ref_stop',
+        13: 'ref_refseq',
+        14: 'ref_score',
+        15: 'ref_strand',
     })
     df.columns = [*df.columns[:-1], 'overlap']
 
