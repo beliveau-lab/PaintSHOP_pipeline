@@ -24,7 +24,6 @@ df.columns = [
     'on_target_score',
     'off_target_score',
     'repeat',
-    'prob'
 ]
 
 # read in max kmer counts
