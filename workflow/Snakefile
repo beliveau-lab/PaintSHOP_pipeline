@@ -155,17 +155,16 @@ rule design_probes:
     output:
         'pipeline_output/02_intermediate_files/02_init_probes/{chrom}.fastq',
     conda:
-        'envs/oligo_miner_env.yml'
+        'envs/environment.yml'
     params:
         mfree='12G',
         h_rt='72:0:0',
-        basename='pipeline_output/02_intermediate_files/02_init_probes/{chrom}',
         min_length=config.get('blockparse_min_length', 30),
         max_length=config.get('blockparse_max_length', 37),
         min_tm=config.get('blockparse_min_tm', 42),
         max_tm=config.get('blockparse_max_tm', 47)
-    shell:
-        'python {workflow.basedir}/scripts/blockParse_unmasked.py -l {params.min_length} -L {params.max_length} -t {params.min_tm} -T {params.max_tm} -f {input[0]} -o {params.basename}'
+    script:
+        'scripts/mine_probes.py'
 
 # optional: if the user provided probes, skip probe mining and format those as fastq files
 rule format_existing_probes:
