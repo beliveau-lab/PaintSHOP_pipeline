@@ -250,7 +250,7 @@ rule parse_pairwise:
 rule predict_duplex:
     input:
         rules.parse_pairwise.output,
-        f'{workflow.basedir}/pickled_models/{config.get("model_temp", 42)}_all_fixed_xgb.pickle.dat'
+        f'{workflow.basedir}/saved_models/{config.get("model_temp", 42)}_all_fixed_xgb.ubj'
     output:
         'pipeline_output/02_intermediate_files/07_predictions/{chrom}_predictions.csv'
     conda:
