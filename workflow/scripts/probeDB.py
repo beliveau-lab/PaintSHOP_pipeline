@@ -14,7 +14,6 @@ import os
 import timeit
 import pybedtools
 from Bio.Seq import Seq
-from Bio.Alphabet import IUPAC
 import pandas as pd
 
 # configure file paths
@@ -108,7 +107,7 @@ def main():
 def check_polarity(row):
     """"Checks polarity and flips probe sequence if reference is +."""
     if row['ref_strand'] == '+':
-        return str(Seq(row['probe_seq'], IUPAC.unambiguous_dna).reverse_complement())
+        return str(Seq(row['probe_seq']).reverse_complement())
     else:
         return str(row['probe_seq'])
 
