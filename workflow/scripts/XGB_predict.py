@@ -18,7 +18,7 @@ Written to work with the results of parse_pairwise.py in a snakemake pipeline.
 
 import pandas as pd
 from Bio.Seq import Seq
-import pickle
+import xgboost as xgb
 
 # read in data
 # in snakemake pipeline first argument should be snakemake.input[0]
@@ -69,10 +69,12 @@ features = features[['bowtie', 'parent_gc', 'derived_gc',
                'derived_TC', 'derived_GA', 'derived_GT', 'derived_GG', 'derived_GC',
                'derived_CA', 'derived_CT', 'derived_CG', 'derived_CC']]
 
-# load in pickled model
-model = pickle.load(open(snakemake.input[1], "rb"))
+# load model (PaintSHOP pickled models, converted to .ubj using xgboost)
+model = xgb.Booster()
+model.load_model('/home/conor/workspace/PaintSHOP_pipeline/workflow/saved_models/37_all_fixed_xgb.ubj')
 
-result = model.predict(features.values)
+# predict duplex stability using xgboost model
+result = model.predict(xgb.DMatrix(features.values))
 
 # function to set neg values to 0, and values greater than 100 to 100
 def correct_range(val):
