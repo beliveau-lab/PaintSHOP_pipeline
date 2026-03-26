@@ -1,62 +1,18 @@
-name: snakemake_paintshop
+name: om2_ps_env
 channels:
-  - beliveau-lab
-  - bioconda
   - conda-forge
+  - bioconda
   - defaults
 dependencies:
-  - _libgcc_mutex=0.1
-  - _py-xgboost-mutex=2.0
-  - bedtools=2.29.2
-  - biopython=1.77
-  - bowtie2=2.3.5.1
-  - bzip2=1.0.8
-  - ca-certificates=2021.10.8
-  - curl=7.71.1
-  - htslib=1.9
-  - jellyfish=2.2.10
-  - jemalloc=4.5.0
-  - joblib=1.1.0
-  - krb5=1.17.2
-  - ld_impl_linux-64=2.36.1
-  - libblas=3.9.0
-  - libcblas=3.9.0
-  - libcurl=7.71.1
-  - libdeflate=1.6
-  - libedit=3.1.20191231
-  - libffi=3.2.1
-  - libgfortran4=7.5.0
-  - liblapack=3.9.0
-  - libopenblas=0.3.12
-  - libssh2=1.10.0
-  - libxgboost=0.82
-  - libzlib=1.2.11
-  - ncurses=6.1
-  - numpy=1.18.5
-  - openssl=1.1.1l
-  - pandas=1.0.5
-  - perl=5.32.1
-  - pip=20.1.1
-  - py-xgboost=0.82
-  - pybedtools=0.8.1
-  - pysam=0.16.0.1
-  - python=3.7.8
-  - python-dateutil=2.8.2
-  - python_abi=3.7
-  - pytz=2021.3
-  - readline=8.0
-  - sam2pairwise=1.0.0
-  - samtools=1.9
-  - scikit-learn=0.23.1
-  - scipy=1.5.0
-  - setuptools=59.6.0
-  - six=1.16.0
-  - sqlite=3.32.3
-  - tbb=2020.2
-  - threadpoolctl=3.0.0
-  - tk=8.6.11
-  - wheel=0.37.0
-  - xgboost=0.82
-  - xz=5.2.5
-  - zip=3.0
-  - zlib=1.2.11
+  - bioconda::bedtools=2.31.1
+  - bioconda::bowtie2=2.5.4
+  - bioconda::kmer-jellyfish=2.3.1
+  - conda-forge::python=3.11.15
+  - conda-forge::uv=0.9.5
+  - bioconda::samtools=1.23
+  - bioconda::sam2pairwise=1.0.0 # TODO remove once om2 workflow is fully integrated 
+  - xgboost=2.1.1
+  - pip
+  - pybedtools
+  - pip:
+    - git+ssh://git@github.com/beliveau-lab/OligoMiner2.git
