@@ -91,5 +91,5 @@ for i in range(0, len(result), 1):
 df['duplex_pred'] = result
 
 # save data frame to disk
-df.to_csv(snakemake.output[0], index_label=False)
+df.to_csv(snakemake.output[0], index=False)
 
