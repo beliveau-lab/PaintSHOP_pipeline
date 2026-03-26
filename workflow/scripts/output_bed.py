@@ -17,20 +17,6 @@ def probeTm(row):
     fcorrected = ('%0.2f' % mt.chem_correction(tmval, fmd=50))
     return fcorrected
 
-# functions to parse the chromosome, start, stop, 
-# and repeat (0 or 1) from probe_ID
-def parse_chrom(row):
-    return row['probe_ID'].split(':')[0]
-
-def parse_start(row):
-    return row['probe_ID'].split(':')[1].split('-')[0]
-
-def parse_end(row):
-    return row['probe_ID'].split('|')[0].split('-')[1]
-
-def parse_repeat(row):
-    return row['probe_ID'].split('|')[1]
-
 # read in data
 df = pd.read_csv(snakemake.input[0])
 
@@ -52,11 +38,14 @@ scores_df = on_target_scores.set_index('probe_ID') \
 
 scores_df = scores_df.reset_index()
 
-# parse info for BED using functions
-scores_df['chrom'] = scores_df.apply(parse_chrom, axis = 1)
-scores_df['start'] = scores_df.apply(parse_start, axis = 1)
-scores_df['stop'] = scores_df.apply(parse_end, axis = 1)
-scores_df['repeat'] = scores_df.apply(parse_repeat, axis = 1)
+# parse info for BED from probe_ID (format: "chrom:start-stop|repeat")
+id_and_repeat = scores_df['probe_ID'].str.split('|', n=1)
+coords = id_and_repeat.str[0]  # "chrom:start-stop"
+scores_df['repeat'] = id_and_repeat.str[1]
+scores_df['chrom'] = coords.str.split(':').str[0]
+start_stop = coords.str.split(':').str[1].str.split('-', n=1)
+scores_df['start'] = start_stop.str[0]
+scores_df['stop'] = start_stop.str[1]
 
 # remove unnecesary column
 scores_df = scores_df.drop('probe_ID', axis = 1)
