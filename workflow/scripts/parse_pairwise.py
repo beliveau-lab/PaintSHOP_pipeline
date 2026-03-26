@@ -68,4 +68,4 @@ def on_target(row):
 df['on_target'] = df.apply(on_target, axis = 1)
 
 # save data frame to disk
-df.to_csv(snakemake.output[0], index_label=False)
+df.to_csv(snakemake.output[0], index=False)
