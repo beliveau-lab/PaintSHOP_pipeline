@@ -17,9 +17,7 @@ Written to work with the results of parse_pairwise.py in a snakemake pipeline.
 """
 
 import pandas as pd
-from Bio.SeqUtils import GC
 from Bio.Seq import Seq
-from Bio.Alphabet import generic_dna
 import pickle
 
 # read in data
@@ -28,14 +26,16 @@ df = pd.read_csv(snakemake.input[0])
 
 # get reverse complement of derived to mirror format of training data
 def reverse_comp(seq):
-    forward_seq = Seq(seq, generic_dna)
-    return str(forward_seq.reverse_complement())
+    return str(Seq(seq).reverse_complement())
 
 df['derived'] = df['derived'].apply(reverse_comp)
 
-# calculate GC content of both sequences
-df['parent_gc'] = df['parent'].apply(GC)
-df['derived_gc'] = df['derived'].apply(GC)
+def gc_content(seq):
+    s = seq.upper()
+    return 100.0 * (s.count('G') + s.count('C')) / len(s)
+
+df['parent_gc'] = df['parent'].apply(gc_content)
+df['derived_gc'] = df['derived'].apply(gc_content)
 
 # length of each seq
 df['parent_len'] = df['parent'].apply(len)
