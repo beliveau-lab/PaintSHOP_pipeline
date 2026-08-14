@@ -10,8 +10,12 @@
 
 # input file paths
 assembly: 'Example1'
-genome_fasta: 'data/example.fa'
-annotation_file: 'data/example.gtf'
+# genome_fasta: 'data/example.fa'
+# annotation_file: 'data/example.gtf'
+# genome_fasta: '/home/conor/reference/assemblies/sacCer3/sacCer3.fa'
+# annotation_file: '/home/conor/reference/assemblies/sacCer3/sacCer3.ncbiRefSeq.gtf'
+genome_fasta: '/home/conor/reference/assemblies/ce11/ce11.fa'
+annotation_file: '/home/conor/reference/assemblies/ce11/ce11.ncbiRefSeq.gtf'
 
 ########################################################################
 #
