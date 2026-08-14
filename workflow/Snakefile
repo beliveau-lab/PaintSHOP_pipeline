@@ -1,4 +1,17 @@
 
+
+import os
+from snakemake.exceptions import WorkflowError
+
+ACTIVE_ENV = os.environ.get("CONDA_PREFIX")
+if not ACTIVE_ENV:
+    raise WorkflowError(
+        "No active conda environment detected. "
+        "Activate the om2_ps_env environment before running the pipeline."
+    )
+print('ACTIVE_ENV: %s' % ACTIVE_ENV)
+
+
 # final pipeline endpoint
 rule all:
     input:
@@ -18,8 +31,6 @@ rule parse_genome:
         removed_hap=f'pipeline_output/01_reference_files/01_chrom_names/removed_hap.txt',
         removed_fix=f'pipeline_output/01_reference_files/01_chrom_names/removed_fix.txt',
         multi_fasta=f'pipeline_output/01_reference_files/02_multi_fasta/{config["assembly"]}.fa'
-    conda:		
-        'envs/environment.yml'
     params:
         mfree='30G',
         h_rt='3:0:0'
@@ -34,8 +45,6 @@ checkpoint split_chroms:
         chrom_names=rules.parse_genome.output.chrom_names,        
     output:
         chrom_fasta_dir=directory('pipeline_output/01_reference_files/03_chrom_fastas'),
-    conda:
-        'envs/environment.yml'
     params:
         mfree='30G',
         h_rt='3:0:0'
@@ -51,8 +60,6 @@ checkpoint parse_gtf:
     output:
         bed=f'pipeline_output/01_reference_files/05_annotation_files/{config["assembly"]}.bed',
         chrom_df_dir=directory('pipeline_output/02_intermediate_files/01_chrom_gtf_dataframes'),
-    conda:      
-        'envs/environment.yml'
     params:
         mfree='30G',
         h_rt='3:0:0'
@@ -67,8 +74,6 @@ rule flatten_isoforms:
         upstream=rules.parse_gtf.output
     output:
         bed='pipeline_output/01_reference_files/04_chrom_iso_flat_beds/{chrom_gtf}_iso_flat.bed',
-    conda:      
-        'envs/environment.yml'
     params:
         mfree='16G',
         h_rt='3:0:0'
@@ -101,8 +106,6 @@ rule merge_flat_annotations:
         get_flat_beds
     output:
         bed=f'pipeline_output/01_reference_files/05_annotation_files/{config["assembly"]}_iso_flat.bed',
-    conda:
-        'envs/environment.yml'
     params:
         mfree='20G',
         h_rt='3:0:0'
@@ -122,8 +125,6 @@ rule build_bowtie:
         f'{BOWTIE2_DIR}/{config["assembly"]}.4.bt2',
         f'{BOWTIE2_DIR}/{config["assembly"]}.rev.1.bt2',
         f'{BOWTIE2_DIR}/{config["assembly"]}.rev.2.bt2',
-    conda:
-        'envs/environment.yml'
     params:
         mfree='80G',
         h_rt='3:0:0'
@@ -138,13 +139,11 @@ rule build_jellyfish:
         rules.parse_genome.output.multi_fasta
     output:
         f"pipeline_output/01_reference_files/07_jf_files/{config['assembly']}.jf"
-    conda:
-        'envs/environment.yml'
     params:
         mfree='30G',
         h_rt='3:0:0'
     shell:
-        'jellyfish count -m 18 -s 3300M -o {output} --out-counter-len 1 -L 2 {input}'
+        'jellyfish count -m 18 -s 330M -o {output} --out-counter-len 1 -L 2 {input}'
 
 
 # mine candidate probes from each chromosome fasta
@@ -154,8 +153,6 @@ rule design_probes:
         rules.parse_genome.output
     output:
         'pipeline_output/02_intermediate_files/02_init_probes/{chrom}.fastq',
-    conda:
-        'envs/environment.yml'
     params:
         mfree='12G',
         h_rt='72:0:0',
@@ -173,8 +170,6 @@ rule format_existing_probes:
         rules.parse_genome.output
     output:
         'pipeline_output/02_intermediate_files/02_init_probes/{chrom}.fastq',
-    conda:
-        'envs/environment.yml'
     params:
         mfree='12G',
         h_rt='72:0:0',
@@ -188,8 +183,6 @@ rule align_probes:
         rules.build_bowtie.output
     output:
         'pipeline_output/02_intermediate_files/03_alignments/{chrom}.bam'
-    conda:
-        'envs/environment.yml'
     params:
         mfree='20G',
         h_rt='5:0:0'
@@ -205,8 +198,6 @@ rule sam_to_pairwise:
         rules.align_probes.output
     output:
         'pipeline_output/02_intermediate_files/04_pairwise_alignments/{chrom}_pairwise.out'
-    conda:
-        'envs/environment.yml'
     params:
         mfree='12G',
         h_rt='3:0:0'
@@ -220,8 +211,6 @@ rule extract_alignment_scores:
         rules.align_probes.output
     output:
         'pipeline_output/02_intermediate_files/05_alignment_scores/{chrom}_AS.txt'
-    conda:
-        'envs/environment.yml'
     params:
         mfree='12G',
         h_rt='3:0:0'
@@ -236,8 +225,6 @@ rule parse_pairwise:
         rules.extract_alignment_scores.output
     output:
         'pipeline_output/02_intermediate_files/06_data_frames/{chrom}_alignments.csv'
-    conda:
-        'envs/environment.yml'
     params:
         mfree='85G',
         h_rt='3:0:0'
@@ -252,8 +239,6 @@ rule predict_duplex:
         f'{workflow.basedir}/saved_models/{config.get("model_temp", 42)}_all_fixed_xgb.ubj'
     output:
         'pipeline_output/02_intermediate_files/07_predictions/{chrom}_predictions.csv'
-    conda:
-        'envs/environment.yml'
     params:
         mfree='30G',
         h_rt='3:0:0'
@@ -267,8 +252,6 @@ rule score:
         rules.predict_duplex.output
     output:
         'pipeline_output/02_intermediate_files/08_scored_probes/{chrom}_probes.bed'
-    conda:
-        'envs/environment.yml'
     params:
         mfree='20G',
         h_rt='3:0:0'
@@ -282,8 +265,6 @@ rule filter_n_probes:
         rules.score.output
     output:
         'pipeline_output/02_intermediate_files/09_probes_filtered/{chrom}_probes.bed'    
-    conda:
-        'envs/environment.yml'
     params:
         mfree='12G',
         h_rt='3:0:0'
@@ -298,8 +279,6 @@ rule max_kmer:
         rules.build_jellyfish.output
     output:
         'pipeline_output/02_intermediate_files/10_max_kmer_counts/{chrom}_kmer_max.txt'
-    conda:
-        'envs/environment.yml'
     params:
         mfree='20G',
         h_rt='3:0:0'
@@ -314,8 +293,6 @@ rule final_probes:
         rules.max_kmer.output
     output:
         f'pipeline_output/03_output_files/01_dna_probes/{config["assembly"]}_all_newBalance_{{chrom}}.tsv'
-    conda:
-        'envs/environment.yml'
     params:
         mfree='12G',
         h_rt='3:0:0'
@@ -348,8 +325,6 @@ rule merge_probes:
         get_probe_paths
     output:
         f'pipeline_output/03_output_files/01_dna_probes/{config["assembly"]}_all_newBalance.tsv',
-    conda:
-        'envs/environment.yml'
     params:
         mfree='20G',
         h_rt='3:0:0'
@@ -363,8 +338,6 @@ rule zip_probes:
         rules.merge_probes.output
     output:
         f'pipeline_output/03_output_files/04_zip_archives/{config["assembly"]}_all_newBalance.zip'
-    conda:
-        'envs/environment.yml'
     params:
         mfree='10G',
         h_rt='3:0:0'
@@ -379,8 +352,6 @@ rule gen_refseq_db:
         annotations=rules.parse_gtf.output.bed
     output:
         tsv=f'pipeline_output/03_output_files/02_rna_probes_all/{config["assembly"]}_refseq_newBalance.tsv'
-    conda:
-        'envs/environment.yml'
     params:
         mfree='20G',
         h_rt='3:0:0'
@@ -394,8 +365,6 @@ rule zip_refseq_db:
         rules.gen_refseq_db.output.tsv
     output:
         f'pipeline_output/03_output_files/04_zip_archives/{config["assembly"]}_refseq_newBalance.zip'
-    conda:
-        'envs/environment.yml'
     params:
         mfree='10G',
         h_rt='3:0:0'
@@ -411,8 +380,6 @@ rule gen_iso_db:
 
     output:
         tsv=f'pipeline_output/03_output_files/03_rna_probes_iso/{config["assembly"]}_iso_newBalance.tsv'
-    conda:
-        'envs/environment.yml'
     params:
         mfree='20G',
         h_rt='3:0:0'
@@ -426,8 +393,6 @@ rule zip_iso_db:
         rules.gen_iso_db.output.tsv
     output:
         f'pipeline_output/03_output_files/04_zip_archives/{config["assembly"]}_iso_newBalance.zip'
-    conda:
-        'envs/environment.yml'
     params:
         mfree='10G',
         h_rt='3:0:0'

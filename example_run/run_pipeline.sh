@@ -5,12 +5,19 @@ SNAKE_FILE='../workflow/Snakefile'
 CONDA_ENVS='../shared_conda_envs'
 
 # activate conda environment
-source activate paintshop_snakemake
+source activate om2_ps_env
+
+# TODO temp remove old outputs
+rm -rf pipeline_output
+git checkout pipeline_output/
 
 # run the pipeline
+# snakemake --configfile config.yml --snakefile $SNAKE_FILE \
+#     --use-conda --conda-prefix $CONDA_ENVS --cores \
+#     --restart-times 3 --conda-frontend conda
+
 snakemake --configfile config.yml --snakefile $SNAKE_FILE \
-    --use-conda --conda-prefix $CONDA_ENVS --cores \
-    --restart-times 3 --conda-frontend mamba
+    --cores --restart-times 3
 
 # export PDF and svg visualizations of the DAG structure of pipeline steps
 echo -e "Exporting pipeline DAG to svg and pdf..."
@@ -20,7 +27,7 @@ dot -Tsvg dag.dot > pipeline_output/pipeline.svg
 rm dag.dot
 
 echo -e "Generating pipeline HTML report..."
-snakemake --snakefile $SNAKE_FILE --configfile $CONFIG_FILE --report pipeline_output/report.html --conda-frontend mamba
+snakemake --snakefile $SNAKE_FILE --configfile $CONFIG_FILE --report pipeline_output/report.html --conda-frontend conda
 
 # success
 echo -e "\nDONE!\n"
